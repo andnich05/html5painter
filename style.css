@@ -1,0 +1,294 @@
+#navi {
+  position: absolute;
+  top: 10px;
+  left: px;
+  color: white;
+  font-size: 11pt;
+  border-top: 1px dotted white;
+  border-bottom: 1px dotted white;
+  padding: 4px;
+  }
+#mark {
+  color: gray;
+  }
+h1 {
+  position: relative;
+  top: 30px;
+  }
+a:link {
+  color: white;
+  }
+a:visited {
+  color: white;
+  }
+a:hover {
+  color: orange;
+  }
+a {
+  text-decoration:none;
+  }
+body {
+  background-color: #303030;
+  color: white;
+  font-family: arial;
+  font-size: 10pt;
+  }
+#canvas1 {
+  position: absolute;
+  top: 85px;
+  left: 10px;
+  z-index: 1;
+  background-color: black;
+  padding-top: 2px;
+  padding-left: 2px;
+  padding-right: 2px;
+  padding-bottom: 0px;
+  }
+#canvas2 {
+  position: absolute;
+  top: 85px;
+  left: 10px;
+  z-index: 2;
+  padding-top: 2px;
+  padding-left: 2px;
+  padding-right: 2px;
+  padding-bottom: 0px;
+  }
+
+.button {
+  position: relative;
+  top: 2px;
+  }
+
+.textbox {
+  height: 14px;
+  font-size: 8pt;
+  }
+
+.textbox:hover {
+  color: #4682B4;
+  }
+.textbox:disabled {
+  color: white;
+  }
+#help {
+  display: none;
+  width: 500px;
+  position: relative;
+  top: 2px;
+  left: 2px;
+  }
+
+#pos {
+  position: relative;
+  top: 2px;
+  }
+#control {
+  position: absolute;
+  top: 85px;
+  left: 512px;
+  z-index:3;
+  background-color: #505050;
+  border: solid 2px black;
+  padding-top: 7px;
+  padding-right: 7px;
+  padding-bottom: 9px;
+  padding-left: 10px;
+  }
+.poly, .circle, .line, .text, .eraser {
+  width: 34px;
+  height: 28px;
+  text-indent: -3000px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  position: relative;
+  left: 0px;
+  }
+.poly {
+  background-image: url(images/button_poly_active.png);
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center top;
+  }
+.circle {
+  background-image: url(images/button_circle.png);
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center top;
+  }
+.line {
+  background-image: url(images/button_line.png);
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center top;
+  }
+.text {
+  background-image: url(images/button_text.png);
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center top;
+  }
+.eraser {
+  background-image: url(images/button_eraser.png);
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center top;
+  }
+.play, .pause, .stop, .forward, .backward, .louder, .quieter, .mute, .fullscreen, .open {
+  width: 44px;
+  height: 44px;
+  text-indent: -3000px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  position: relative;
+  left: 10px;
+  }
+#video_control {
+  border: solid 0px #505050;
+  position: relative;
+  top: 493px;
+  left: 2px;
+  background-color: #909090;
+  width: 846px;
+  padding: 3px;
+  padding-top: 30px;
+  }
+#videoplayer {
+  position: absolute;
+  top: 85px;
+  left: 10px;
+  border-top: solid 2px black;
+  border-left: solid 2px black;
+  border-right: solid 2px black;
+  background-color: black;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+  }
+#timecode {
+  position: absolute;
+  top: 575px;
+  left: 650px;
+  z-index: 5;
+  }
+#vol {
+  position: absolute;
+  left: 20px;
+  top: 90px;
+  margin: 0;
+  padding: 0;
+  z-index: 3;
+  }
+
+.play {
+  background: transparent url(images/play.png) no-repeat center top;
+  position: relative;
+  }
+.play:hover {
+  background-image: url(images/play_on.png);
+  position: relative;
+  }
+.pause {
+  background: transparent url(images/pause.png) no-repeat center top;
+  position: relative;
+  }
+.pause:hover {
+  background-image: url(images/pause_on.png);
+  position: relative;
+  }
+.stop {
+  background: transparent url(images/stop.png) no-repeat center top;
+  position: relative;
+  }
+.stop:hover {
+  background-image: url(images/stop_on.png);
+  position: relative;
+  }
+.forward {
+  background: transparent url(images/forward.png) no-repeat center top;
+  position: relative;
+  }
+.forward:hover {
+  background-image: url(images/forward_on.png);
+  position: relative;
+  }
+.backward {
+  background: transparent url(images/backward.png) no-repeat center top;
+  position: relative;
+  }
+.backward:hover {
+  background-image: url(images/backward_on.png);
+  position: relative;
+  }
+.open {
+  background: transparent url(images/open.png) no-repeat center top;
+  position: relative;
+  left: 48px;
+  }
+.open:hover {
+  background-image: url(images/open_on.png);
+  position: relative;
+  left: 48px;
+  }
+.mute {
+  background: transparent url(images/mute.png) no-repeat center top;
+  position: relative;
+  left: 92px;
+  }
+.mute:hover {
+  background-image: url(images/mute_on.png);
+  position: relative;
+  left: 92px;
+  }
+.louder {
+  background: transparent url(images/volume_up.png) no-repeat center top;
+  position: relative;
+  left: 92px;
+  }
+.louder:hover {
+  background-image: url(images/volume_up_on.png);
+  position: relative;
+  left: 92px;
+  }
+.quieter {
+  background: transparent url(images/volume_down.png) no-repeat center top;
+  position: relative;
+  left: 92px;
+  }
+.quieter:hover {
+  background-image: url(images/volume_down_on.png);
+  position: relative;
+  left: 92px;
+  }
+.fullscreen {
+  background: transparent url(images/fullscreen.png) no-repeat center top;
+  position: relative;
+  left: 48px;
+  }
+.fullscreen:hover {
+  background-image: url(images/fullscreen_on.png);
+  position: relative;
+  left: 48px;
+  }
+.hide {
+  width: 33px;
+  height: 33px;
+  text-indent: -3000px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  position: relative;
+  left: 30px;
+  }
+.hide {
+  background: transparent url(images/hide.png) no-repeat center top;
+  position: relative;
+  left: 112px;
+  }
+.hide:hover {
+  background-image: url(images/hide_on.png);
+  position: relative;
+  left: 112px;
+  }

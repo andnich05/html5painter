@@ -1,0 +1,522 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>HTML5 Painter</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+  </head>
+  <body onload="clear_all()">
+    <h1>HTML5 Painter</h1>
+    <div id="canvas1"><canvas height='500' width='500' class="canvas" id='canvas'>Browser does not support HTML5</canvas></div>
+    <div id="canvas2"><canvas height='500' width='500' class="canvas" id='canvas_overlay'></canvas></div>
+
+    <div id="control"><form name="f" action="canvas.html" method="post">
+
+    <input type="button" title="Polygon" class="poly" id="poly" value="0" onclick="cshape_check('0')"/>
+     Eckanzahl (3 bis 6): <input type="text" class="textbox" name="poly_number" value="4" size="1"/></br>
+    <input type="button" title="Kreis" class="circle" id="circle" value="1" onclick="cshape_check('1')"/><br/>
+    <input type="button" title="Linie" class="line" id="line" value="2" onclick="cshape_check('2')"/>
+    <input type="checkbox" id="cb_path" disabled=true onchange="check_path()"/>Linienpfad<br/>
+    <input type="button" title="Text" class="text" id="text" value="3" onclick="cshape_check('3')"/>
+    Schriftart: <input type="text" disabled=true class="textbox" name="font_name" size="5" value="Arial"/>
+    Schriftgr&ouml;&szlig;e: <input type="text" disabled=true class="textbox" name="font_size" size="2" value="11"/>
+    Schriftstil: <input type="text" disabled=true class="textbox" name="font_style" size="5" value="normal"/>
+    Text: <input type="text" disabled=true name="text_value" class="textbox" size="20"/><br/>
+    <input type="button" title="Radierer" class="eraser" id="eraser" value="4" onclick="cshape_check('4')"/>
+    Gr&ouml;&szlig;e: <input type="text" disabled=true class="textbox" name="eraser_size" size="2" value="15"/><br/>
+    Zeichenfl&auml;chengr&ouml;&szlig;e: <input type = "text" class="textbox" value="500" name = "xsize" size = "3"/> x
+    <input type="text" class="textbox" value="500" name="ysize" size="3"/>
+     || Hintergrundfarbe: <input type="text" class="textbox" name="background" value="white" size="7"/>
+    <input type = "button" class="button" value = "Aktualisieren" onclick="canvas_size(form.xsize.value,form.ysize.value,form.background.value)"/><br/>
+    <input type="checkbox" id="cb_stroke" checked="checked" onchange="check_stroke()"/>Rahmen
+     || Farbe: <input type="text" class="textbox" name="sc" value="black" size="7"/>
+     || Dicke: <input type="text" class="textbox" name="swidth" value="1" size="3"/><br/>
+    <input type="checkbox" id="cb_fill" onchange="check_fill()"/>F&uuml;llung
+     || Farbe: <input type="text" disabled=true class="textbox" name="fc" value="orange" size="7"/><br/>
+    <div id="pos">Transparenz: <input type="text" class="textbox" name="alpha" value="1.00" onchange="set_alpha(form.alpha.value)" size="2"/></br>
+    <!-- || Drehung: <input type="text" id="rotation" class="textbox" name="crotate" value="0" size="2" onchange="transforming()"/> Grad<br/> -- ist noch nicht ganz ausgereift ---//-->
+    <input type="button" class="button" value="PNG-Datei erzeugen" onclick="save_canvas()"/>
+    <input type="button" class="button" value="Zeichenfl&auml;che leeren" onclick="canvas_size(form.xsize.value,form.ysize.value,form.background.value)"/></br>
+    <input type="button" class="button" value="?" onclick="display_help()"/></br>
+    <div id="help">Die Bedienung orientiert sich an Grafik-Programmen wie Photoshop.</br>
+    Durch die 5 Buttons w&auml;hlt man die Form die man zeichnen will.</br>
+    Bei der Polygon- und der Kreisform kann man die Gr&ouml;&szlig;e durch gedr&uuml;ckt Halten und Ziehen der Maustaste ver&auml;ndern.</br>
+    Bei der Linienform kann man die Funktion "Linienpfad" aktivieren, dadurch kann man Formen zeichnen indem man einzelne
+    Pfadpunkte setzt und diese zum Schluss entweder mit einem Doppelklick oder durch (pr&auml;zisen) Klick auf den
+    Anfangspfadpunkt abschlie&szlig;t. Au&szlig;erdem kann man mit aktivierter Pfad-Funktion durch gedr&uuml;ckt Halten und Ziehen
+    der Maustaste quadratische Kurven erzeugen.</br>
+    Mit dem Schrift-Werkzeug kann man die Schriftart, die Schriftgr&ouml;&szlig;e (in pt) und den Schriftstil
+    (bold oder italic oder auch beides) ver&auml;ndern. Bei gedr&uuml;ckter Maustaste kann man den Text noch an die richtige Position schieben.</br>
+    Die Farben k&ouml;nnen als HTML-Code (z.B. #FFFFFF), als RGB-Wert (z.B. rgb(255,255,255)) oder als vordefinierter Name (z.B. orange) angegeben werden.</br>
+     Die restlichen Funktionen sollten sich von selbst erkl&auml;ren.</div>
+    </form></div>
+
+    <script type="text/javascript">
+    <!--
+      var can = document.getElementById("canvas");
+      var can2 =document.getElementById("canvas_overlay");
+      var ctx = can.getContext('2d');
+      var overlay=can2.getContext('2d');
+      var shape=0;
+      var fill_color, stroke_color;
+      var fill, stroke=1;
+      var xmouse, ymouse;
+      var xscalemouse, yscalemouse;
+      var mdown, xdown=0, ydown=0;
+      var image_data, image_data_path, actual_image_data_path;
+      var xup, yup;
+      var line_path=0;
+      var xpath, ypath;
+      var path_started;
+      var xmouse_last, ymouse_last;
+      var xpath_array = new Array();
+      var ypath_array = new Array();
+      var counter_path=0;
+      var xdown_minus1;
+      var ydown_minus1;
+      var close_now=0;
+      var d=0;
+      var startXpath, startYpath;
+
+      function save_canvas() {
+        window.open(can.toDataURL("image/png"));
+        }
+
+      function set_alpha(a) {
+      ctx.globalAlpha=a;
+      }
+
+      function transforming() {
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.rotate(document.f.crotate.value*Math.PI/180);
+      }
+
+      window.onmousemove=function(e) {
+      var obj=can;
+      var top=0;
+      var left=0;
+      while (obj && obj.tagName != 'BODY') {
+        top += obj.offsetTop;
+        left += obj.offsetLeft;
+        obj = obj.offsetParent;
+        }
+      xmouse=e.clientX-left+window.pageXOffset;
+      ymouse=e.clientY-top+window.pageYOffset;
+      if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)) {
+        if(shape==4&&mdown==1) {
+          ctx.setTransform(1,0,0,1,0,0);
+          ctx.fillStyle=document.f.background.value;
+          ctx.fillRect(xmouse-document.f.eraser_size.value/2,ymouse-document.f.eraser_size.value/2,document.f.eraser_size.value,document.f.eraser_size.value);
+          image_data=ctx.getImageData(0,0,can.width,can.height);
+          }
+        if(shape==4&&mdown==0) {
+          //image_data=ctx.getImageData(0,0,can.width,can.height);
+          ctx.setTransform(1,0,0,1,0,0);
+          ctx.putImageData(image_data,0,0);
+          ctx.fillStyle=document.f.background.value;
+          ctx.fillRect(xmouse-document.f.eraser_size.value/2,ymouse-document.f.eraser_size.value/2,document.f.eraser_size.value,document.f.eraser_size.value);
+          }
+        }
+      if(mdown==1&&shape!=4) {
+        xup=xmouse;
+        yup=ymouse;
+        ctx.putImageData(image_data,0,0);
+        if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)&&((line_path==0)||((line_path==1)&&(shape!=2)))) draw();
+        }
+      if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)) {
+        if(mdown==1&&shape==2&&line_path==1&&counter_path!=0&&path_started==1) {
+          overlay.clearRect(0,0,can.width,can.height);
+          overlay.beginPath();
+          overlay.moveTo(xdown_minus1,ydown_minus1);
+          overlay.quadraticCurveTo(xmouse,ymouse,xdown,ydown);
+          overlay.stroke();
+          }
+        }
+      else {
+        overlay.clearRect(0,0,can.width,can.height);
+        }
+      }
+
+      window.onmousedown=function() {
+      if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)) {
+
+        xdown=xmouse;
+        ydown=ymouse;
+        }
+      if(shape==4) {
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.fillStyle=document.f.background.value;
+        ctx.fillRect(xmouse-document.f.eraser_size.value/2,ymouse-document.f.eraser_size.value/2,document.f.eraser_size.value,document.f.eraser_size.value);
+        }
+      image_data=ctx.getImageData(0,0,can.width,can.height);
+      if((((xdown==xpath)&&(ydown==ypath))||((xdown==xpath)&&(ydown==ypath+1))||((xdown==xpath)&&(ydown==ypath-1))||((xdown==xpath+1)&&(ydown==ypath))||((xdown==xpath+1)&&(ydown==ypath+1))||((xmouse==xpath+1)&&(ydown==ypath-1))||((xdown==xpath-1)&&(ydown==ypath))||((xdown==xpath-1)&&(ydown==ypath+1))||((xdown==xpath-1)&&(ydown==ypath-1))&&(path_started==1))) {
+        close_now=1;
+        }
+      mdown=1;
+      }
+
+      window.ondblclick=function() {
+      if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)&&(line_path==1)&&(shape==2)) {
+        path_started=0;
+        ctx.putImageData(image_data_path,0,0);
+        ctx.closePath();
+        if(fill==1) {
+          ctx.fill();
+          ctx.fillStyle=document.f.fc.value;
+          }
+        ctx.lineWidth=document.f.swidth.value;
+        ctx.stroke();
+        }
+      }
+
+      window.onmouseup=function() {
+      mdown=0;
+      if(shape!=4) ctx.putImageData(image_data,0,0);
+      if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)) {
+        if(shape!=2) {
+          draw();
+          }
+        if(line_path==0&&shape==2) {
+          draw();
+          }
+        }
+      if((shape==2)&&(line_path==1)) {
+        if((xmouse<=can.width)&&(xmouse>=0)&&(ymouse<=can.height)&&(ymouse>=0)) {
+          if((close_now==1&&path_started)||(((xmouse==xpath)&&(ymouse==ypath))||((xmouse==xpath)&&(ymouse==ypath+1))||((xmouse==xpath)&&(ymouse==ypath-1))||((xmouse==xpath+1)&&(ymouse==ypath))||((xmouse==xpath+1)&&(ymouse==ypath+1))||((xmouse==xpath+1)&&(ymouse==ypath-1))||((xmouse==xpath-1)&&(ymouse==ypath))||((xmouse==xpath-1)&&(ymouse==ypath+1))||((xmouse==xpath-1)&&(ymouse==ypath-1))&&(path_started==1))) {
+            path_started=0;
+            overlay.clearRect(0,0,can.width,can.height);
+            ctx.putImageData(image_data_path,0,0);
+            if(close_now==0) ctx.closePath();
+            if(close_now==1) ctx.quadraticCurveTo(xmouse,ymouse,xdown,ydown);
+            if(fill==1) {
+              ctx.fillStyle=document.f.fc.value;
+              ctx.fill();
+              }
+            if(stroke==1&&close_now==0) {
+              ctx.lineWidth=document.f.swidth.value;
+              ctx.strokeStyle=document.f.sc.value;
+              ctx.stroke();
+              }
+            if(stroke==1&&close_now==1) {
+              ctx.closePath();
+              ctx.lineWidth=document.f.swidth.value;
+              ctx.strokeStyle=document.f.sc.value;
+              ctx.stroke();
+              }
+            counter_path=0;
+            close_now=0;
+            return;
+            }
+
+          if(path_started==1) {
+            overlay.clearRect(0,0,can.width,can.height);
+            ctx.putImageData(actual_image_data_path,0,0);
+            //ctx.quadraticCurveTo(xmouse,ymouse,xdown,ydown);
+            ctx.quadraticCurveTo(xmouse,ymouse,xdown,ydown);
+            //xmouse_last=xmouse;
+            //ymouse_last=ymouse;
+            counter_path++;
+            ctx.strokeStyle=document.f.sc.value;
+            ctx.lineWidth=1;
+            if(counter_path==2) ctx.strokeRect(startXpath-1,startYpath-1,3,3);
+            xpath_array[counter_path]=xmouse;
+            ypath_array[counter_path]=ymouse;
+            ctx.fillStyle=document.f.fc.value;
+            ctx.fillRect(xmouse-1,ymouse-1,3,3);
+            actual_image_data_path=ctx.getImageData(0,0,can.width,can.height);
+            ctx.lineWidth=1;
+            ctx.strokeStyle=document.f.sc.value;
+            ctx.stroke();
+            }
+          else {
+            path_started=1;
+            close_now=0;
+            ctx.beginPath();
+            overlay.clearRect(0,0,can.width,can.height);
+            ctx.moveTo(xmouse,ymouse);
+            xpath=xmouse;
+            ypath=ymouse;
+            counter_path=1;
+            xpath_array=[];
+            ypath_array=[];
+            xpath_array[0]=xmouse;
+            ypath_array[0]=ymouse;
+            xmouse_last=xmouse;
+            ymouse_last=ymouse;
+            image_data_path=ctx.getImageData(0,0,can.width,can.height);
+            ctx.strokeStyle=document.f.sc.value;
+            ctx.lineWidth=1;
+            startXpath=xmouse;
+            startYpath=ymouse;
+            ctx.strokeRect(startXpath-1,startYpath-1,3,3);
+            actual_image_data_path=image_data_path;
+            }
+          if(counter_path==0) {
+            xdown_minus1=xpath;
+            ydown_minus1=ypath;
+            }
+          else {
+            xdown_minus1=xdown;
+            ydown_minus1=ydown;
+            }
+          }
+        }
+      }
+
+
+
+      function clear_all() {
+      ctx.clearRect(0,0,can.width,can.height);
+      ctx.fillStyle=document.f.background.value;
+      ctx.fillRect(0,0,can.width,can.height);
+      }
+
+      function check_fill() {
+      if(document.getElementById("cb_fill").checked) {
+        fill=1;
+        document.f.fc.disabled=false;
+        }
+      else {
+        fill=0;
+        document.f.fc.disabled=true;
+        }
+      }
+
+      function check_stroke() {
+      if(document.getElementById("cb_stroke").checked) {
+        stroke=1;
+        document.f.sc.disabled=false;
+        document.f.swidth.disabled=false;
+        }
+      else {
+        stroke=0;
+        document.f.sc.disabled=true;
+        document.f.swidth.disabled=true;
+        }
+      }
+
+      function check_path() {
+      if(document.getElementById("cb_path").checked) {
+        line_path=1;
+      }
+      else line_path=0;
+      }
+
+      function canvas_size(x,y,z) {
+      can.width = x;
+      can.height = y;
+      ctx.fillStyle=z;
+      ctx.fillRect(0,0,x,y);
+      can2.width = x;
+      can2.height = y;
+      document.getElementById("control").style.left=parseInt(x)+12+"px";
+      image_data=ctx.getImageData(0,0,can.width,can.height);
+      }
+
+      function cshape_check(obj) {
+      shape=obj;
+      switch (obj) {
+        case "0":
+          document.getElementById("poly").style.backgroundImage="url('images/button_poly_active.png')";
+          document.getElementById("circle").style.backgroundImage="url('images/button_circle.png')";
+          document.getElementById("line").style.backgroundImage="url('images/button_line.png')";
+          document.getElementById("text").style.backgroundImage="url('images/button_text.png')";
+          document.getElementById("eraser").style.backgroundImage="url('images/button_eraser.png')";
+          document.f.poly_number.disabled=false;
+          document.f.font_name.disabled=true;
+          document.f.font_size.disabled=true;
+          document.f.font_style.disabled=true;
+          document.f.text_value.disabled=true;
+          document.f.eraser_size.disabled=true;
+          document.getElementById("cb_path").disabled=true;
+          break;
+        case "1":
+          document.getElementById("poly").style.backgroundImage="url('images/button_poly.png')";
+          document.getElementById("circle").style.backgroundImage="url('images/button_circle_active.png')";
+          document.getElementById("line").style.backgroundImage="url('images/button_line.png')";
+          document.getElementById("text").style.backgroundImage="url('images/button_text.png')";
+          document.getElementById("eraser").style.backgroundImage="url('images/button_eraser.png')";
+          document.f.poly_number.disabled=true;
+          document.f.font_name.disabled=true;
+          document.f.font_size.disabled=true;
+          document.f.font_style.disabled=true;
+          document.f.text_value.disabled=true;
+          document.f.eraser_size.disabled=true;
+          document.getElementById("cb_path").disabled=true;
+          break;
+        case "2":
+          document.getElementById("poly").style.backgroundImage="url('images/button_poly.png')";
+          document.getElementById("circle").style.backgroundImage="url('images/button_circle.png')";
+          document.getElementById("line").style.backgroundImage="url('images/button_line_active.png')";
+          document.getElementById("text").style.backgroundImage="url('images/button_text.png')";
+          document.getElementById("eraser").style.backgroundImage="url('images/button_eraser.png')";
+          document.f.poly_number.disabled=true;
+          document.f.font_name.disabled=true;
+          document.f.font_size.disabled=true;
+          document.f.font_style.disabled=true;
+          document.f.text_value.disabled=true;
+          document.f.eraser_size.disabled=true;
+          document.getElementById("cb_path").disabled=false;
+          break;
+        case "3":
+          document.getElementById("poly").style.backgroundImage="url('images/button_poly.png')";
+          document.getElementById("circle").style.backgroundImage="url('images/button_circle.png')";
+          document.getElementById("line").style.backgroundImage="url('images/button_line.png')";
+          document.getElementById("text").style.backgroundImage="url('images/button_text_active.png')";
+          document.getElementById("eraser").style.backgroundImage="url('images/button_eraser.png')";
+          document.f.poly_number.disabled=true;
+          document.f.font_name.disabled=false;
+          document.f.font_size.disabled=false;
+          document.f.font_style.disabled=false;
+          document.f.text_value.disabled=false;
+          document.f.eraser_size.disabled=true;
+          document.getElementById("cb_path").disabled=true;
+          break;
+        case "4":
+          document.getElementById("poly").style.backgroundImage="url('images/button_poly.png')";
+          document.getElementById("circle").style.backgroundImage="url('images/button_circle.png')";
+          document.getElementById("line").style.backgroundImage="url('images/button_line.png')";
+          document.getElementById("text").style.backgroundImage="url('images/button_text.png')";
+          document.getElementById("eraser").style.backgroundImage="url('images/button_eraser_active.png')";
+          document.f.poly_number.disabled=true;
+          document.f.font_name.disabled=true;
+          document.f.font_size.disabled=true;
+          document.f.font_style.disabled=true;
+          document.f.text_value.disabled=true;
+          document.f.eraser_size.disabled=false;
+          document.getElementById("cb_path").disabled=true;
+          break;
+        default:
+          document.getElementById("poly").style.backgroundImage="url('images/button_poly_active.png')";
+          document.getElementById("circle").style.backgroundImage="url('images/button_circle.png')";
+          document.getElementById("line").style.backgroundImage="url('images/button_line.png')";
+          document.getElementById("text").style.backgroundImage="url('images/button_text.png')";
+          document.getElementById("eraser").style.backgroundImage="url('images/button_eraser.png')";
+          document.f.poly_number.disabled=false;
+          document.f.font_name.disabled=true;
+          document.f.font_size.disabled=true;
+          document.f.font_style.disabled=true;
+          document.f.text_value.disabled=true;
+          document.f.eraser_size.disabled=true;
+          document.getElementById("cb_path").disabled=true;
+          break;
+          }
+
+      }
+
+      function draw() {
+      ctx.globalAlpha=document.f.alpha.value;
+      if(shape == 0) {
+        if(document.f.poly_number.value>2&&document.f.poly_number.value<7) {
+          ctx.beginPath();
+          ctx.moveTo(xdown,ydown);
+          }
+        if(document.f.poly_number.value==3) {
+          ctx.lineTo(xdown+(xup-xdown),ydown);
+          ctx.lineTo(xdown+(xup-xdown)/2,yup);
+          ctx.lineTo(xdown,ydown);
+          ctx.closePath();
+          }
+        if(document.f.poly_number.value==4) {
+          ctx.lineTo(xdown+(xup-xdown),ydown);
+          ctx.lineTo(xdown+(xup-xdown),yup);
+          ctx.lineTo(xdown,yup);
+          ctx.lineTo(xdown,ydown);
+          ctx.closePath();
+          }
+        if(document.f.poly_number.value==5) {
+          ctx.lineTo(xdown+(xup-xdown),ydown);
+          ctx.lineTo(xdown+(xup-xdown)+(xup-xdown)*0.3875,ydown+(yup-ydown)*188/305);
+          ctx.lineTo(xdown+(xup-xdown)*0.5,yup);
+          ctx.lineTo(xdown-(xup-xdown)*0.3875,ydown+(yup-ydown)*188/305);
+          ctx.lineTo(xdown,ydown);
+          ctx.closePath();
+          }
+        if(document.f.poly_number.value==6) {
+          ctx.lineTo(xdown+(xup-xdown),ydown);
+          ctx.lineTo(xdown+(xup-xdown)*1.5,ydown+(yup-ydown)/2);
+          ctx.lineTo(xup,yup);
+          ctx.lineTo(xdown,yup);
+          ctx.lineTo(xdown-(xup-xdown)*0.5,ydown+(yup-ydown)/2);
+          ctx.lineTo(xdown,ydown);
+          ctx.closePath();
+          }
+        if(document.f.poly.value==8) {
+          ctx.lineTo(xdown+(xup-xdown),ydown);
+          ctx.lineTo(xdown+(xup-xdown)*1.5,ydown+(yup-ydown)/3);
+          ctx.lineTo(xdown+(xup-xdown)*1.5,ydown+(yup-ydown)/3*2);
+          ctx.lineTo(xup,yup);
+          ctx.lineTo(xdown,yup);
+          ctx.lineTo(xdown-(xup-xdown)*0.5,ydown+(yup-ydown)/3*2);
+          ctx.lineTo(xdown-(xup-xdown)*0.5,ydown+(yup-ydown)/3);
+          ctx.lineTo(xdown,ydown);
+          ctx.closePath();
+          }
+        if(fill==1) {
+          ctx.fillStyle = document.f.fc.value;
+          //ctx.fillRect(xdown,ydown,(xup-xdown),(yup-ydown));
+          ctx.fill();
+          }
+        if(stroke==1) {
+          ctx.lineWidth=document.f.swidth.value;
+          ctx.strokeStyle=document.f.sc.value;
+          //ctx.strokeRect(xdown,ydown,(xup-xdown),(yup-ydown));
+          ctx.stroke();
+          }
+        }
+      if(shape == 1) {
+        ctx.beginPath();
+        ctx.arc(xdown,ydown,(Math.sqrt((xup-xdown)*(xup-xdown)+(yup-ydown)*(yup-ydown))),0*Math.PI,2*Math.PI);
+        if(fill==1) {
+          ctx.fillStyle=document.f.fc.value;
+          ctx.fill();
+          }
+        if(stroke==1) {
+          ctx.lineWidth=document.f.swidth.value;
+          ctx.strokeStyle=document.f.sc.value;
+          ctx.stroke();
+          }
+        }
+      if(shape == 2) {
+        ctx.beginPath();
+        ctx.moveTo(xdown,ydown);
+        ctx.lineTo(xup,yup);
+        ctx.lineWidth=document.f.swidth.value;
+        ctx.strokeStyle=document.f.sc.value;
+        ctx.closePath();
+        ctx.stroke();
+        }
+      if(shape==3) {
+        if(fill==1) {
+          ctx.fillStyle=document.f.fc.value;
+          ctx.font=document.f.font_style.value+" "+document.f.font_size.value+"pt"+" "+document.f.font_name.value;
+          ctx.fillText(document.f.text_value.value,xmouse,ymouse);
+          }
+        if(stroke==1) {
+          ctx.lineWidth=document.f.swidth.value;
+          ctx.strokeStyle=document.f.sc.value;
+          ctx.font=document.f.font_style.value+" "+document.f.font_size.value+"pt"+" "+document.f.font_name.value;
+          ctx.strokeText(document.f.text_value.value,xmouse,ymouse);
+          }
+        }
+      }
+
+      function display_help() {
+        if(d==1) {
+          document.getElementById("help").style.display="none";
+          d=0;
+          return;
+          }
+        if(d==0) {
+          document.getElementById("help").style.display="block";
+          d=1;
+          return;
+          }
+        }
+
+      //-->
+    </script>
+
+
+  </body>
+</html>
